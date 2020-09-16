@@ -1,0 +1,7 @@
+#!/bin/bash
+
+cd ../cmd/sms-sender || exit
+
+rm -rf sms-sender
+
+CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo
