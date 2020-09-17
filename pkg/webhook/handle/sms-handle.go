@@ -17,26 +17,27 @@ type SMSParams struct {
 }
 
 type SMSParam struct {
-	SmsCode       string `json:"smsCode"`
-	SmsContent    string `json:"smsContent"`
-	NewStaffId    string `json:"newStaffId"`
-	EffectiveDate string `json:"effectiveDate"`
-	SubPort       string `json:"subPort"`
+	SmsCode       string              `json:"smsCode"`
+	SmsContent    string              `json:"smsContent"`
+	NewStaffId    string              `json:"newStaffId"`
+	EffectiveDate string              `json:"effectiveDate"`
+	SubPort       string              `json:"subPort"`
 	CrmpfPubInfo  option.CrmpfPubInfo `json:"crmpfPubInfo"`
 }
 
 func SMSHandle(smsContent string, smsCfg option.SMSConfiguration) (string, error) {
 	var phoneNum []string
-	phoneNum = strings.Split(smsCfg.Code,",")
-	for i := 0;i < len(phoneNum); i++{
+	var info string
+	phoneNum = strings.Split(smsCfg.Code, ",")
+	for i := 0; i < len(phoneNum); i++ {
 		smsParams := SMSParams{
 			Params: SMSParam{
-				SmsCode: phoneNum[i],
-				SmsContent: smsContent,
-				NewStaffId: smsCfg.NewStaffId,
+				SmsCode:       phoneNum[i],
+				SmsContent:    smsContent,
+				NewStaffId:    smsCfg.NewStaffId,
 				EffectiveDate: smsCfg.EffectiveDate,
-				SubPort: smsCfg.SubPort,
-				CrmpfPubInfo: smsCfg.CrmpfPubInfo,
+				SubPort:       smsCfg.SubPort,
+				CrmpfPubInfo:  smsCfg.CrmpfPubInfo,
 			},
 		}
 
@@ -80,12 +81,12 @@ func SMSHandle(smsContent string, smsCfg option.SMSConfiguration) (string, error
 		resDataObj := resData["object"].(map[string]interface{})
 		// Success
 		if resDataObj["respCode"] == "0" {
-			info := fmt.Sprintf("Successed to send SMS interface, response code: 0, desc: %s", resDataObj["respDesc"])
-			return info, nil
+			info += fmt.Sprintf("Successed to send SMS interface, response code: 0, desc: %s", resDataObj["respDesc"])
 		} else {
 			e := fmt.Sprintf("Successed to send SMS interface, response code: %s, desc: %s", resDataObj["respCode"], resDataObj["respDesc"])
 			return "", errors.New(e)
 		}
 	}
-	klog.V(4).Info("send messages: %d",len(phoneNum))
+	klog.V(4).Info("send messages: %d", len(phoneNum))
+	return info, nil
 }
