@@ -18,11 +18,13 @@ func Run(o *option.SMSSenderOptions) error {
 			Addr: fmt.Sprintf("0.0.0.0:%v", o.SenderPort),
 		},
 		SMSSenderCfg: o.SMSCfg,
+		MysqlCfg: o.MysqlCfg,
 	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", HealthHandler)
 	mux.HandleFunc("/sms", ws.Handle)
+	mux.HandleFunc("/wechat", ws.Handle)
 	ws.HttpServer.Handler = mux
 
 	go func() {
@@ -45,5 +47,5 @@ func Run(o *option.SMSSenderOptions) error {
 }
 
 func HealthHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "ok")
+	_, _ = fmt.Fprintln(w, "ok")
 }

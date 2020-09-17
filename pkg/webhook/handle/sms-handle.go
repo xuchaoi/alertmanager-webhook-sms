@@ -8,33 +8,41 @@ import (
 	"github.com/xuchaoi/alertmanager-webhook-sms/cmd/sms-sender/app/option"
 	"github.com/xuchaoi/alertmanager-webhook-sms/pkg/util"
 	"io/ioutil"
+	"k8s.io/klog"
 )
 
 type SMSParams struct {
-	smsCode       string
-	smsContent    string
-	newStaffId    string
-	effectiveDate string
-	subPort       string
-	crmpfPubInfo  option.CrmpfPubInfo
+	Params SMSParam `json:"params"`
+}
+
+type SMSParam struct {
+	SmsCode       string `json:"smsCode"`
+	SmsContent    string `json:"smsContent"`
+	NewStaffId    string `json:"newStaffId"`
+	EffectiveDate string `json:"effectiveDate"`
+	SubPort       string `json:"subPort"`
+	CrmpfPubInfo  option.CrmpfPubInfo `json:"crmpfPubInfo"`
 }
 
 func SMSHandle(smsContent string, smsCfg option.SMSConfiguration) (string, error) {
-	var smsParams = new(SMSParams)
-	smsParams.smsCode       = smsCfg.Code
-	smsParams.smsContent    = smsContent
-	smsParams.newStaffId    = smsCfg.NewStaffId
-	smsParams.effectiveDate = smsCfg.EffectiveDate
-	smsParams.subPort       = smsCfg.SubPort
-	smsParams.crmpfPubInfo  = smsCfg.CrmpfPubInfo
+	smsParams := SMSParams{
+		Params: SMSParam{
+			SmsCode: smsCfg.Code,
+			SmsContent: smsContent,
+			NewStaffId: smsCfg.NewStaffId,
+			EffectiveDate: smsCfg.EffectiveDate,
+			SubPort: smsCfg.SubPort,
+			CrmpfPubInfo: smsCfg.CrmpfPubInfo,
+		},
+	}
 
 	buf, err := json.Marshal(smsParams)
 	if err != nil {
 		e := fmt.Sprintf("Failed to convert the smsParams to byte through json tool, err: %v", err)
 		return "", errors.New(e)
 	}
-
-	res, err := util.HttpPost(smsCfg.Url, bytes.NewReader(buf))
+	klog.V(4).Infof("SMS sender request body: %s", string(buf))
+	res, err := util.SMSHttpPost(smsCfg.Url, bytes.NewReader(buf))
 	if err != nil {
 		e := fmt.Sprintf("Failed to send SMS by SMS API, err: %v", err)
 		return "", errors.New(e)
@@ -59,6 +67,12 @@ func SMSHandle(smsContent string, smsCfg option.SMSConfiguration) (string, error
 	}
 
 	resData := f.(map[string]interface{})
+	klog.V(4).Infof("SMS interface resCode: %d", res.StatusCode)
+	klog.V(4).Infof("SMS interface resData: %v", resData)
+	if resData["object"] == nil {
+		e := fmt.Sprint("Failed to get SMS body.object, err: body.object is nil")
+		return "", errors.New(e)
+	}
 	resDataObj := resData["object"].(map[string]interface{})
 	// Success
 	if resDataObj["respCode"] == "0" {

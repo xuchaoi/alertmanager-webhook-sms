@@ -14,6 +14,7 @@ const (
 	DefaultMysqlPort        = 3306
 	DefaultMysqlNetwork     = "tcp"
 	DefaultMysqlDBName      = "mysql"
+	DefaultSubPort          = "10086"
 )
 
 type SMSSenderOptions struct {
@@ -21,8 +22,6 @@ type SMSSenderOptions struct {
 	SMSCfg        SMSConfiguration
 	MysqlCfg      MysqlConfiguration
 }
-
-
 
 type SMSConfiguration struct {
 	Url           string
@@ -58,6 +57,7 @@ func NewSMSSenderOption() *SMSSenderOptions {
 		SMSCfg: SMSConfiguration{
 			NewStaffId: DefaultSMSNewStaffId,
 			EffectiveDate: DefaultSMSEffectiveDate,
+			SubPort: DefaultSubPort,
 			CrmpfPubInfo: DefaultSMSCrmpfPubInfo,
 		},
 		MysqlCfg: MysqlConfiguration{
